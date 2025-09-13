@@ -12,8 +12,7 @@ const cookies = [
 
 const agentOptions = {
   pipelining: 5,
-  maxRedirections: 0,
-  localAddress: "127.0.0.1"
+  maxRedirections: 0
 };
 
 const agent = ytdl.createAgent(cookies, agentOptions);
