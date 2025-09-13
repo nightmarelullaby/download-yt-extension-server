@@ -12,6 +12,7 @@ app.use(cors())
 app.get('/api/download', async (req, res) => {
   const { url } = req.query;
   if(!url) return res.status(400).json({ error: 'invalid url' });
+  console.log('new download video request!!')
 
 
 execFile("./yt-dlp", [
