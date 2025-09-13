@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { execFile } from 'child_process';
 import path from 'path';
-
+const ytDlpPath = path.resolve(__dirname, 'yt-dlp');
 const app = express();
 const port = 3000;
 
@@ -15,7 +15,7 @@ app.get('/api/download', async (req, res) => {
   console.log('new download video request!!')
 
 
-execFile("./yt-dlp", [
+execFile(ytDlpPath, [
   url,
   '--dump-single-json',
   '--no-warnings',
