@@ -5,6 +5,19 @@ import ytdl from '@distube/ytdl-core';
 const app = express();
 const port = 3000;
 
+const cookies = [
+  { name: "VISITOR_INFO1_LIVE", value: "rwGXRtO2Kbs" },
+  { name: "YSC", value: "rfRkGOKwCRI" }
+];
+
+const agentOptions = {
+  pipelining: 5,
+  maxRedirections: 0,
+  localAddress: "127.0.0.1"
+};
+
+const agent = ytdl.createAgent(cookies, agentOptions);
+
 app.use(cors());
 
 app.get('/api/download', async (req, res) => {
@@ -16,7 +29,7 @@ app.get('/api/download', async (req, res) => {
   console.log('new api download!');
 
   try {
-    const info = await ytdl.getInfo(url);
+    const info = await ytdl.getInfo(url, { agent });
 
     const formats = info.formats.map(f => ({
       itag: f.itag,
