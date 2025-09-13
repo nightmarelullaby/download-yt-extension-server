@@ -7,7 +7,8 @@ const port = 3000;
 
 const cookies = [
   { name: "VISITOR_INFO1_LIVE", value: "rwGXRtO2Kbs" },
-  { name: "YSC", value: "rfRkGOKwCRI" }
+  { name: "YSC", value: "rfRkGOKwCRI" },
+  { name: 'SID', value: 'g.a0001AjhJrMOvQVaE4KoPIIK9_YL5Bsi2fgja2Al5PnzE0-EJvyagzFumbMGwSdVBRAaynJjEwACgYKAXUSARASFQHGX2MiXTsZZrWYCKY5UJzzT7MXMRoVAUF8yKqiKoHcW1W0uy3Y8BU7IXrt0076' }
 ];
 
 const agentOptions = {
