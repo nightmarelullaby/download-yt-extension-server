@@ -3,6 +3,12 @@ import express from 'express';
 import cors from 'cors';
 import { execFile } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const ytDlpPath = path.resolve(__dirname, 'yt-dlp');
 const app = express();
 const port = 3000;
