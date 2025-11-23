@@ -1,49 +1,48 @@
 import express from 'express';
 import cors from 'cors';
-import ytdl from '@distube/ytdl-core';
-
+import path from 'path';
+import {spawn} from 'child_process';
 const app = express();
 const port = 3000;
 
-const cookies = [
-  { name: "VISITOR_INFO1_LIVE", value: "rwGXRtO2Kbs" },
-  { name: "YSC", value: "rfRkGOKwCRI" },
-  { name: 'SID', value: 'g.a0001AjhJrMOvQVaE4KoPIIK9_YL5Bsi2fgja2Al5PnzE0-EJvyagzFumbMGwSdVBRAaynJjEwACgYKAXUSARASFQHGX2MiXTsZZrWYCKY5UJzzT7MXMRoVAUF8yKqiKoHcW1W0uy3Y8BU7IXrt0076' }
-];
-
-const agentOptions = {
-  pipelining: 5,
-  maxRedirections: 0
-};
-
-const agent = ytdl.createAgent(cookies, agentOptions);
-
 app.use(cors());
+
+function runYtDlp(url, args) {
+  return spawn('yt-dlp', args.concat([url]));
+}
 
 app.get('/api/download', async (req, res) => {
   const { url } = req.query;
-  if (!url || !ytdl.validateURL(url)) {
+  if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
 
-  console.log('new api download!');
-
   try {
-    const info = await ytdl.getInfo(url, { agent });
+    const ls = runYtDlp(url, ['--print-json', '-q', '--skip-download']);
+    let buffer = '';
+    ls.stdout.on('data', async (data) => {
+        buffer += data.toString();
+       console.log('retreiveng data...')
+        // Split into lines
+        let lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line
 
-    const formats = info.formats.map(f => ({
-      itag: f.itag,
-      resolution: f.height ? `${f.height}p` : 'audio',
-      ext: f.container,
-      filesize: f.contentLength ? parseInt(f.contentLength) : null,
-      codec: f.codecs,
-      url: f.url
-    }));
+        for (const line of lines) {
+            if (line.trim()) {
+            try {
+                const obj = JSON.parse(line);
+                return res.json(obj);
 
-    return res.json({ downloadUrl: formats });
+            } catch (err) {
+                console.error('Invalid JSON line:', line);
+                reject(err);
+            }
+            }
+        }
+    })
   } catch (err) {
-    console.error('ytdl error:', err);
-    return res.status(500).json({ error: 'Failed to fetch video info' });
+    console.error('Unexpected error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
