@@ -51,17 +51,56 @@ app.get('/api/get-info', async (req, res) => {
   }
 });
 
-app.get('/api/download', async (req, res) => {
-  const { url, type } = req.query;
+app.get('/api/get-formats', async (req, res) => {
+  const { url } = req.query;
   if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
+  const ls = runYtDlp(url, [...cookiesArgs, '-F', '--print-json', '-q', '--skip-download']);
+  console.log('Getting info...!')
+  try {
+    let buffer = '';
+    ls.stdout.on('data', async (data) => {
+        buffer += data.toString();
 
-  console.log(url, type)
+        let lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line
+
+        for (const line of lines) {
+            if (line.trim()) {
+              try {
+                  const rawJson = JSON.parse(line);
+                  const avFormats = rawJson.formats.filter(
+                    f => (f.vcodec !== "none" && f.acodec !== "none") || f.format_id === '250' || f.format_id === '251'
+                  );
+
+                  return res.json(avFormats);
+
+              } catch (err) {
+                  console.error('Invalid JSON line:', line);
+              }
+            }
+        }
+    })
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/download', async (req, res) => {
+  const { url, type, format_id, resolution } = req.query;
+  if (!url || typeof url !== 'string' || !url.startsWith('http') || !resolution) {
+    return res.status(400).json({ error: 'Invalid YouTube URL' });
+  }
+
+  const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=mp4][height<=${resolution}]`
+  const audioFormat = resolution === 'high' && type === 'audio' ? 'bestaudio[ext=webm]' : 'worstaudio[ext=webm]'
   const ytdlp = runYtDlp(url, [
     ...cookiesArgs,
     '-o', '-',
-    '-f', `${type === 'video' ? 'bestvideo[ext=mp4][height=480]+bestaudio/best[ext=mp4][height<=480]' : 'bestaudio[ext=webm]'}`,
+    '-f', `${type === 'video' ? videoFormat : audioFormat}`,
+    // `${type === 'video' ? '--merge-output-format' : ''}`,
     '--no-progress',
     '--no-warnings',
     '--quiet',
