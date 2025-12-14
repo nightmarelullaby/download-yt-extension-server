@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { runYtDlp } from './utils/ytdlp.js';
+import { cookiesPath } from './cookies/index.js';
 const app = express();
 const port = 3000;
 
@@ -11,13 +12,19 @@ app.use(cors({
   "optionsSuccessStatus": 204
 }));
 
+const cookiesArgs = [
+    '--cookies', cookiesPath,
+    '--js-runtimes', 'node'
+]
+console.log(cookiesPath)
+
 app.get('/api/get-info', async (req, res) => {
   const { url } = req.query;
   if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
-  const ls = runYtDlp(url, ['--print-json', '-q', '--skip-download']);
-  console.log('here!')
+  const ls = runYtDlp(url, [...cookiesArgs, '--print-json', '-q', '--skip-download']);
+  console.log('Getting info...!')
   try {
     let buffer = '';
     ls.stdout.on('data', async (data) => {
@@ -49,20 +56,22 @@ app.get('/api/download', async (req, res) => {
   if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
+
+  console.log(url, type)
   const ytdlp = runYtDlp(url, [
+    ...cookiesArgs,
     '-o', '-',
-    '-f', `${type === 'video' ? 'best[ext=mp4]' : 'bestaudio[ext=webm]'}`,
+    '-f', `${type === 'video' ? 'bestvideo[ext=mp4][height=480]+bestaudio[ext=m4a]/best[ext=mp4][height<=480]' : 'bestaudio[ext=webm]'}`,
     '--no-progress',
     '--no-warnings',
     '--quiet',
   ]);
 
-  console.log(ytdlp.stdout)
   res.writeHead(200,
     {
-      'Content-Type': type === 'video' ? 'video/mp4' : 'audio/webm',
+      'Content-Type': type === 'video' ? 'video/mp4' : 'audio/mpeg',
       'transfer-encoding': 'chunked',
-      'content-disposition':`attachment; filename=audio.${type === 'video' ? 'mp4' : 'webm'}`
+      'content-disposition':`attachment; filename=audio.${type === 'video' ? 'mp4' : 'mp3'}`
     })
   ytdlp.stdout.pipe(res)
 })
