@@ -61,7 +61,7 @@ app.get('/api/download', async (req, res) => {
   const ytdlp = runYtDlp(url, [
     ...cookiesArgs,
     '-o', '-',
-    '-f', `${type === 'video' ? 'bestvideo[ext=mp4][height=480]+bestaudio[height=480]' : 'bestaudio[ext=webm]'}`,
+    '-f', `${type === 'video' ? 'bestvideo[ext=mp4][height=480]+bestaudio/best[ext=mp4][height<=480]' : 'bestaudio[ext=webm]'}`,
     '--no-progress',
     '--no-warnings',
     '--quiet',
