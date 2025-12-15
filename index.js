@@ -100,6 +100,7 @@ app.get('/api/download', async (req, res) => {
     ...cookiesArgs,
     '-o', '-',
     '-f', `${type === 'video' ? videoFormat : audioFormat}`,
+    '--js-runtimes', 'node',
     // `${type === 'video' ? '--merge-output-format' : ''}`,
     '--no-progress',
     '--no-warnings',
