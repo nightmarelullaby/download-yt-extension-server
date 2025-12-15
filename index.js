@@ -94,13 +94,13 @@ app.get('/api/download', async (req, res) => {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
 
-  const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=webm][height<=${resolution}]`
+  const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=mp4][height<=${resolution}]`
   const audioFormat = resolution === 'high' && type === 'audio' ? 'bestaudio[ext=webm]' : 'worstaudio[ext=webm]'
   const ytdlp = runYtDlp(url, [
     ...cookiesArgs,
-    // `${type === 'video' ? '--merge-output-format mp4' : ''}`,
     '-o', '-',
     '-f', `${type === 'video' ? videoFormat : audioFormat}`,
+    // `${type === 'video' ? '--merge-output-format' : ''}`,
     '--no-progress',
     '--no-warnings',
     '--quiet',
