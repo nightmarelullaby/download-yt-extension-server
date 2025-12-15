@@ -101,11 +101,13 @@ app.get('/api/download', async (req, res) => {
   const ytdlp = runYtDlp(url, [
     ...cookiesArgs,
     '-o', '-',
-    '-f', type === 'video' ? videoFormat : audioFormat,
+    '-f',
+    type === 'video' ? videoFormat : audioFormat,
     '--js-runtimes', 'node',
     '--no-progress',
     '--no-warnings',
-    '--quiet'
+    '--quiet',
+    ...(type === 'video' ? ['--remux-video', 'mp4'] : ['--audio-format', 'mp3']),
   ]);
 
   ytdlp.stderr.on('data', data => {
