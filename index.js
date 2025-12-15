@@ -96,24 +96,38 @@ app.get('/api/download', async (req, res) => {
 
   const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=mp4][height<=${resolution}]`
   const audioFormat = resolution === 'high' && type === 'audio' ? 'bestaudio[ext=webm]' : 'worstaudio[ext=webm]'
-  const ytdlp = runYtDlp(url, [
-    ...cookiesArgs,
-    '-o', '-',
-    '-f', `${type === 'video' ? videoFormat : audioFormat}`,
-    '--js-runtimes', 'node',
-    // `${type === 'video' ? '--merge-output-format' : ''}`,
-    '--no-progress',
-    '--no-warnings',
-    '--quiet',
-  ]);
+  console.log("yt-dlp URL:", url);
 
-  res.writeHead(200,
-    {
-      'Content-Type': type === 'video' ? 'video/mp4' : 'audio/mpeg',
-      'transfer-encoding': 'chunked',
-      'content-disposition':`attachment; filename=audio.${type === 'video' ? 'mp4' : 'mp3'}`
-    })
-  ytdlp.stdout.pipe(res)
+const ytdlp = runYtDlp(url, [
+  ...cookiesArgs,
+  '-o', '-',
+  '-f', type === 'video' ? videoFormat : audioFormat,
+  '--js-runtimes', 'node',
+  // ...(type === 'video' ? ['--merge-output-format', 'mp4'] : []),
+  '--no-progress',
+  '--no-warnings',
+  '--quiet',
+]);
+
+// Log stderr output from yt-dlp
+ytdlp.stderr.on('data', data => {
+  console.error('yt-dlp error:', data.toString());
+});
+
+// Log when the process exits
+ytdlp.on('close', code => {
+  console.log(`yt-dlp process exited with code ${code}`);
+});
+
+res.writeHead(200, {
+  'Content-Type': type === 'video' ? 'video/mp4' : 'audio/mpeg',
+  'transfer-encoding': 'chunked',
+  'content-disposition': `attachment; filename=audio.${type === 'video' ? 'mp4' : 'mp3'}`
+});
+
+// Pipe stdout to the response
+ytdlp.stdout.pipe(res);
+
 })
 
 app.listen(port, () => {
