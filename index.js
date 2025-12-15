@@ -94,6 +94,8 @@ app.get('/api/download', async (req, res) => {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
 
+const ext = type === 'video' ? 'mp4' : 'webm';
+
   const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=mp4][height<=${resolution}]`
   const audioFormat = resolution === 'high' && type === 'audio' ? 'bestaudio[ext=webm]' : 'worstaudio[ext=webm]'
   console.log("yt-dlp URL:", url);
@@ -107,8 +109,16 @@ app.get('/api/download', async (req, res) => {
     '--no-progress',
     '--no-warnings',
     '--quiet',
+    '--retries', 'infinite',
+    '--fragment-retries', 'infinite',
+    '--http-chunk-size', '1M',
+    '--concurrent-fragments', '5',
     ...(type === 'video' ? ['--remux-video', 'mp4'] : ['--audio-format', 'mp3']),
   ]);
+
+  ytdlp.stdout._readableState.highWaterMark = 1024 * 64;
+  ytdlp.stderr._readableState.highWaterMark = 1024 * 16;
+
 
   ytdlp.stderr.on('data', data => {
     console.error('yt-dlp error:', data.toString());
@@ -117,8 +127,6 @@ app.get('/api/download', async (req, res) => {
   ytdlp.on('close', code => {
     console.log(`yt-dlp process exited with code ${code}`);
   });
-
-  const ext = type === 'video' ? 'mp4' : 'webm';
 
   res.writeHead(200, {
     'Content-Type': type === 'video' ? 'video/mp4' : 'audio/webm',
