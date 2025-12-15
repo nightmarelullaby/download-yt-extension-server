@@ -23,7 +23,7 @@ app.get('/api/get-info', async (req, res) => {
   if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
-  const ls = runYtDlp(url, [...cookiesArgs, '--print-json', '-q', '--skip-download']);
+  const ls = runYtDlp(url, [...cookiesArgs, '--js-runtimes', 'node', '--print-json', '-q', '--skip-download']);
   console.log('Getting info...!')
   try {
     let buffer = '';
@@ -56,7 +56,7 @@ app.get('/api/get-formats', async (req, res) => {
   if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
-  const ls = runYtDlp(url, [...cookiesArgs, '-F', '--print-json', '-q', '--skip-download']);
+  const ls = runYtDlp(url, [...cookiesArgs, '--js-runtimes', 'node', '-F', '--print-json', '-q', '--skip-download']);
   console.log('Getting info...!')
   try {
     let buffer = '';
