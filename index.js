@@ -70,11 +70,11 @@ app.get('/api/get-formats', async (req, res) => {
             if (line.trim()) {
               try {
                   const rawJson = JSON.parse(line);
-                  const avFormats = rawJson.formats.filter(
-                    f => (f.vcodec !== "none" && f.acodec !== "none") || f.format_id === '250' || f.format_id === '251'
-                  );
+                  // const avFormats = rawJson.formats.filter(
+                  //   f => (f.vcodec !== "none" && f.acodec !== "none") || f.format_id === '250' || f.format_id === '251'
+                  // );
 
-                  return res.json(avFormats);
+                  return res.json(rawJson.formats);
 
               } catch (err) {
                   console.error('Invalid JSON line:', line);
