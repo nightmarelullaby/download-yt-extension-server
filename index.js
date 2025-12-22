@@ -98,7 +98,6 @@ const ext = type === 'video' ? 'mp4' : 'webm';
 
   const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=mp4][height<=${resolution}]`
   const audioFormat = resolution === 'high' && type === 'audio' ? 'bestaudio[ext=webm]' : 'worstaudio[ext=webm]'
-  console.log("yt-dlp URL:", url);
   const trimF = `*${s}-${e}`;
   const ytdlp = runYtDlp(url, [
     ...cookiesArgs,
@@ -130,7 +129,7 @@ const ext = type === 'video' ? 'mp4' : 'webm';
   });
 
   res.writeHead(200, {
-    'Content-Type': type === 'video' ? 'video/mp4' : 'audio/webm',
+    'Content-Type': type === 'video' ? 'video/mp4' : 'audio/mpeg',
     'transfer-encoding': 'chunked',
     'Content-Disposition': `attachment; filename=download.${ext}`
   });
