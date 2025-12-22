@@ -89,7 +89,7 @@ app.get('/api/get-formats', async (req, res) => {
 });
 
 app.get('/api/download', async (req, res) => {
-  const { url, type, format_id, resolution } = req.query;
+  const { url, type, format_id, resolution, s, e } = req.query;
   if (!url || typeof url !== 'string' || !url.startsWith('http') || !resolution) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
@@ -99,7 +99,7 @@ const ext = type === 'video' ? 'mp4' : 'webm';
   const videoFormat = format_id ? format_id : `bestvideo[ext=mp4][height=${resolution}]+bestaudio/best[ext=mp4][height<=${resolution}]`
   const audioFormat = resolution === 'high' && type === 'audio' ? 'bestaudio[ext=webm]' : 'worstaudio[ext=webm]'
   console.log("yt-dlp URL:", url);
-
+  const trimF = `*${s}-${e}`;
   const ytdlp = runYtDlp(url, [
     ...cookiesArgs,
     '-o', '-',
@@ -113,6 +113,7 @@ const ext = type === 'video' ? 'mp4' : 'webm';
     '--fragment-retries', 'infinite',
     '--http-chunk-size', '1M',
     '--concurrent-fragments', '5',
+    ...(s && e ? ["--download-sections", trimF] : ''),
     ...(type === 'video' ? ['--remux-video', 'mp4'] : ['--audio-format', 'mp3']),
   ]);
 
